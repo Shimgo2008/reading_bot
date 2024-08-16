@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import asyncio
 import settings
-from cogs.my_cog import MyCog
+from cogs.conect_vc import MyCog
 
 intents = discord.Intents.default()
 intents.messages = True

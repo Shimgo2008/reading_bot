@@ -2,4 +2,4 @@ from voicevoxapi import voicevox
 
 voicevox_instance = voicevox()
 
-voicevox_instance.hogehoge("こんにちは", 3)
+voicevox_instance.hogehoge("hoge", 2)

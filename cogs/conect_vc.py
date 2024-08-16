@@ -3,6 +3,7 @@ import os
 from .voicevoxapi import voicevox
 from discord.ext import commands
 from discord import app_commands
+from pathlib import Path
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
@@ -27,16 +28,13 @@ class MyCog(commands.Cog):
 
         self.voicevox_instance.hogehoge(self.content, 3)
         print(f"Message from target channel: {message.content}")
+
         print("start")
-        source = discord.FFmpegPCMAudio(f"voice/sample.wav")
+        source = discord.FFmpegPCMAudio('voice/sample.wav')
         print("set path")
-        try:
-            message.guild.voice_client.play(source)
-        except Exception as e:
-            print(e)
-        
+        message.guild.voice_client.play(source)
         print("play")
-        os.remove('voice/sample.wav')
+        # os.remove('voice/sample.wav')
         print("remove and end")
 
     @app_commands.command(name='join', description='Say hello to the world!')
@@ -57,6 +55,7 @@ class MyCog(commands.Cog):
         if interaction.user.voice is not None and interaction.user.voice.channel is not None:
             await interaction.guild.voice_client.disconnect()
             await interaction.response.send_message("ボイスチャンネルから離れました。")
+            self.channel_id = None
         else:
             await interaction.response.send_message("ボイスチャンネルに接続していません。")
 

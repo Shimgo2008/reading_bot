@@ -1,1 +1,4 @@
 .env
+cogs/example.py
+cogs/__pycache__
+__pycache__

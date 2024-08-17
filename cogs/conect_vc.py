@@ -3,7 +3,6 @@ import os
 from .voicevoxapi import voicevox
 from discord.ext import commands
 from discord import app_commands
-from pathlib import Path
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
@@ -34,7 +33,6 @@ class MyCog(commands.Cog):
         print("set path")
         message.guild.voice_client.play(source)
         print("play")
-        # os.remove('voice/sample.wav')
         print("remove and end")
 
     @app_commands.command(name='join', description='Say hello to the world!')

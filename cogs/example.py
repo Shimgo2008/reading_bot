@@ -2,4 +2,6 @@ from voicevoxapi import voicevox
 
 voicevox_instance = voicevox()
 
-voicevox_instance.hogehoge("hoge", 2)
+text = "chogehogeしたい気分になってきたがやっぱやめとくか"
+
+voicevox_instance.hogehoge(text, 2)

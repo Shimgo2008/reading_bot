@@ -66,3 +66,10 @@ class MyCog(commands.Cog):
         print("send message")
         interaction.guild.voice_client.play(source)
         print("end")
+
+    # @commands.tre
+    # @app_commands.describe(commands="set_voice")
+    # @app_commands.choices(commands=[
+    #     Choice(name="ずんだもん", value=2)
+    # ])
+    # async def set_voice(self, intraction: discord.Interaction, comannds: Choice[str] = None):

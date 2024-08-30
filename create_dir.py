@@ -34,13 +34,17 @@ def get_voice_id(now_user_id, server_id, filename=None):
     data = load_data(server_id, filename)
     return data.get(now_user_id, None)
 
-now_user_id = 293747561
+now_user_id = 1234567890
 server_id = 987654321
 
 save_data(now_user_id, 2, server_id)
 
 voice_id = get_voice_id(now_user_id, server_id)
+
+
 if voice_id is not None:
     print(f"User ID {now_user_id} has voice ID {voice_id}.")
 else:
     print(f"User ID {now_user_id} is not in the data.")
+
+print(load_data(server_id, filename=None))

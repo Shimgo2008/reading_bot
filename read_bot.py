@@ -25,17 +25,6 @@ async def setup():
     await client.start(TOKEN)
 
 
-@client.event
-async def on_voice_state_update(member, before, after):
-    if before.channel is None and after.channel is not None:
-        nickname = member.nick if member.nick else member.name
-        source = f'{nickname}が{after.channel}に参加しました'
-        print(source)
-        before.guild.voice_client.play(source)
-    elif before.channel is not None and after.channel is None:
-        nickname = member.nick if member.nick else member.name
-        source = print(f'{nickname}が{before.channel}から退出しました')
-
 @client.tree.command(name="set_speaker")
 @app_commands.describe(commands="helloworld")
 @app_commands.choices(commands=[

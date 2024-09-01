@@ -19,6 +19,36 @@ class MyCog(commands.Cog):
     
     Choice = discord.app_commands.Choice
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        if before.channel is None and after.channel is not None:
+            # ユーザーがボイスチャンネルに参加したとき
+            channel = after.channel
+            if member != self.bot.user:
+                display_name = member.display_name
+                message = f"{display_name}さんが入室しました"
+                print(message)
+                self.voicevox_instance.hogehoge(message, 3)
+                source = discord.FFmpegPCMAudio('voice/sample.wav')
+
+                # 再生中でない場合に再生する
+                if not channel.guild.voice_client.is_playing():
+                    channel.guild.voice_client.play(source)
+
+        elif before.channel is not None and after.channel is None:
+            # ユーザーがボイスチャンネルから退出したとき
+            channel = before.channel
+            if member != self.bot.user:
+                display_name = member.display_name
+                message = f"{display_name}さんが退出しました"
+                print(message)
+                self.voicevox_instance.hogehoge(message, 3)
+                source = discord.FFmpegPCMAudio('voice/sample.wav')
+
+                # 再生中でない場合に再生する
+                if not channel.guild.voice_client.is_playing():
+                    channel.guild.voice_client.play(source)
+
 
 
     @commands.Cog.listener()

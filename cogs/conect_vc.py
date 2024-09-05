@@ -56,6 +56,10 @@ class MyCog(commands.Cog):
         if message.author == self.bot.user:
             return
 
+        if message.content == '@ピザ':
+                await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
+
+
         if self.channel_id is None or message.channel.id != self.channel_id:
             print("Message not from target channel, ignoring.")
             return

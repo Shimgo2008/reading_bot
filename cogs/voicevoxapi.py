@@ -29,7 +29,7 @@ class voicevox:
         params = {'text': text, 'speaker': speaker}  # ずんだもん ノーマルスタイル
         timeout = 15
         query_synthesis = requests.post(url, params=params, timeout=timeout)
-
+        print(query_synthesis.json())
         response = requests.post(
                     'http://localhost:50021/synthesis',
                     params=params,

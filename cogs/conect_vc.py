@@ -1,7 +1,7 @@
 import discord
-from .voicevoxapi import voicevox
 from discord.ext import commands
 from discord import app_commands
+from .voicevoxapi import voicevox
 from .lib import mng_speaker_id
 
 # intents = discord.Intents.default()

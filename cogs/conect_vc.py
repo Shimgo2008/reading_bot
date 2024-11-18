@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 from .voicevoxapi import voicevox
 from .lib import mng_speaker_id
@@ -122,3 +123,18 @@ class MyCog(commands.Cog):
         print("send message")
         interaction.guild.voice_client.play(source)
         print("end")
+    
+    @tasks.loop(seconds=5)
+    async def check_voice_channel(self):
+        if (not self.channel_id == None):
+            for guild in self.bot.guilds:
+                for vc in guild.voice_channels:
+                    if vc.id == self.channel_id:
+                        if len(vc.members) == 1 and vc.members[0].bot:  # ボットしかいない場合
+                            await vc.guild.voice_client.disconnect()
+                            # print('自動切断しました。')
+                            self.channel_id = None
+
+    @check_voice_channel.before_loop
+    async def before_check_voice_channel(self):
+        await self.bot.wait_until_ready()

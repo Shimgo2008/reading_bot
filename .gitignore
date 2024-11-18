@@ -5,5 +5,5 @@ __pycache__
 voice/*
 server/*
 hoge.py
-read_bot
+.venv
 macos-arm64

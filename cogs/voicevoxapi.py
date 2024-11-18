@@ -5,11 +5,13 @@ import re
 
 
 class voicevox:
+
     def hogehoge(self, text, speaker, path=None):
+        
         def clean_text(text):
-            text = re.sub(r'^(-#\ )?(#{1,3}\ )?;[\s\S]*|//.*?(\n|$)|/\*[\s\S]*?\*/', '\n', text).strip()
             text = re.sub(r'\|\|.+?\|\|', 'ネタバレ', text)
             text = re.sub(r'`[^\n\r\f\v`]+?`|```[\s\S]+?```', 'コード省略', text)
+            # text = re.sub(r'^(-#\ )?(#{1,3}\ )?;[\s\S]*|//.*?(\n|$)|/\*[\s\S]*?\*/', '\n', text).strip()
             text = text.replace('IA姉', 'いあねえ')
             text = text.replace('ia姉', 'いあねえ')
             text = text.replace("IA", "いあ")
@@ -28,7 +30,7 @@ class voicevox:
             os.rename('voice/sample.wav')
             return
 
-        text = text[:67]
+        text = text[:140]
         params = {'text': text, 'speaker': speaker}  # ずんだもん ノーマルスタイル
         timeout = 15
         query_synthesis = requests.post(url, params=params, timeout=timeout)

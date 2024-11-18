@@ -1,9 +1,10 @@
 import discord
-from discord.ext import commands
-from discord.ext import commands, tasks
+import asyncio
 from discord import app_commands
+from discord.ext import commands, tasks
 from .voicevoxapi import voicevox
 from .lib import mng_speaker_id
+from .cevio_net import CeVIO
 
 # intents = discord.Intents.default()
 # intents.voice_states = True
@@ -15,8 +16,9 @@ class MyCog(commands.Cog):
         self.bot = bot
         self.channel_id = None  # インスタンス変数として管理
         self.content = "hogehoge"  # 初期値を設定
-        self.voicevox_instance = voicevox()  # インスタンスを作成
+        self.voicevox_instance = voicevox()
         self.mng_speaker_id = mng_speaker_id()
+        self.cevio = CeVIO()
     
     Choice = discord.app_commands.Choice
 
@@ -54,11 +56,15 @@ class MyCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+
+        if message.content[0] != ";":
+            return
+
         if message.author == self.bot.user:
             return
 
         if message.content == '@ピザ':
-                await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
+            await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
 
 
         if self.channel_id is None or message.channel.id != self.channel_id:
@@ -80,10 +86,18 @@ class MyCog(commands.Cog):
         voice_id = mng_speaker_id.get_voice_id(self.user_id, self.server_id)
         print(str(voice_id))
 
-        if voice_id != None:
-            self.voicevox_instance.hogehoge(self.content, voice_id)
+        if voice_id is None:
+            print("voice_id is None, defaulting to Voicevox ID 3.")
+            # self.voicevox_instance.hogehoge(self.content, 3)
+            self.cevio.make_sound_CeVIO(self.content, "IA")
+        elif voice_id == "IA":
+            print("voice_id is IA")
+            self.cevio.make_sound_CeVIO(self.content, voice_id)
         else:
-            self.voicevox_instance.hogehoge(self.content, 3)
+            print(f"voice_id is {voice_id}")
+            # self.voicevox_instance.hogehoge(self.content, voice_id)
+            self.cevio.make_sound_CeVIO(self.content, "IA")
+
         print(f"Message from target channel: {message.content}")
         print("start")
         source = discord.FFmpegPCMAudio('voice/sample.wav')

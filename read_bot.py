@@ -30,6 +30,8 @@ async def setup():
 @app_commands.choices(commands=[
     discord.app_commands.Choice(name="デフォルト", value="3"),
 
+    discord.app_commands.Choice(name="IA姉", value="IA"),
+
     discord.app_commands.Choice(name="四国めたん", value="2"),
     discord.app_commands.Choice(name="あまあま四国めたん", value="0"),
     discord.app_commands.Choice(name="ツンツン四国めたん", value="6"),
@@ -55,11 +57,10 @@ async def setup():
     discord.app_commands.Choice(name="楽々タイプT", value="50"),
     discord.app_commands.Choice(name="怖がりタイプT", value="51"),
     discord.app_commands.Choice(name="ささやきタイプT", value="52"),
-
 ])
 async def set_speaker(interaction: discord.Interaction, commands: discord.app_commands.Choice[str] = None):
     name = commands.name
-    value = int(commands.value)
+    value = commands.value
     server_id = interaction.guild.id
     user_id = interaction.user.id
     print(f"server id is {server_id}")

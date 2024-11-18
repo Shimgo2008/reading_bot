@@ -1,5 +1,4 @@
 import discord
-import asyncio
 from discord import app_commands
 from discord.ext import commands, tasks
 from .voicevoxapi import voicevox
@@ -57,10 +56,7 @@ class MyCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        if message.content[0] != ";":
-            return
-
-        if message.author == self.bot.user:
+        if message.author == self.bot.user or message.content[0] == ";" or message.content[0] == "；" or message.content[0:1] == "//":
             return
 
         if message.content == '@ピザ':
@@ -95,8 +91,8 @@ class MyCog(commands.Cog):
             self.cevio.make_sound_CeVIO(self.content, voice_id)
         else:
             print(f"voice_id is {voice_id}")
-            # self.voicevox_instance.hogehoge(self.content, voice_id)
-            self.cevio.make_sound_CeVIO(self.content, "IA")
+            self.voicevox_instance.hogehoge(self.content, voice_id)
+            # self.cevio.make_sound_CeVIO(self.content, "IA")
 
         print(f"Message from target channel: {message.content}")
         print("start")

@@ -8,3 +8,4 @@ server/*
 hoge.py
 .venv
 macos-arm64
+bot.log

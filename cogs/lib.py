@@ -3,7 +3,8 @@ import os
 
 class mng_speaker_id:
 
-    def save_data( user_id, voice_id, server_id, filename=None):
+    @staticmethod
+    def save_data(user_id, voice_id, server_id, filename=None):
         if filename is None:
             filename = "server/" + str(server_id) + "/data.pkl"
 
@@ -21,10 +22,11 @@ class mng_speaker_id:
         with open(filename, 'wb') as file:
             pickle.dump(data, file)
 
-    def load_data( server_id, filename=None):
+    @staticmethod
+    def load_data(server_id, filename=None):
         if filename is None:
             filename = "server/" + str(server_id) + "/data.pkl"
-        
+
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 data = pickle.load(file)
@@ -32,10 +34,11 @@ class mng_speaker_id:
         else:
             return {}
 
-    def get_voice_id( now_user_id, server_id, filename=None):
+    @staticmethod
+    def get_voice_id(now_user_id, server_id, filename=None):
         if filename is None:
             filename = "server/" + str(server_id) + "/data.pkl"
-        
+
         if os.path.exists(filename):
             with open(filename, 'rb') as file:
                 data = pickle.load(file)

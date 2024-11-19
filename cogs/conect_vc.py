@@ -56,7 +56,7 @@ class MyCog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        if message.author == self.bot.user or message.content[0] == ";" or message.content[0] == "；" or message.content[0:1] == "//":
+        if message.author == self.bot.user or message.content[0] == ";" or message.content[0] == "；" or message.content[:1] == "//":
             return
 
         if message.content == '@ピザ':
@@ -74,6 +74,7 @@ class MyCog(commands.Cog):
         self.content = message.content
         self.user_id = message.author.id
         self.server_id = message.guild.id
+        self.message_hash = hash(message)
 
         print(self.user_id)
         print(self.server_id)
@@ -85,22 +86,24 @@ class MyCog(commands.Cog):
         if voice_id is None:
             print("voice_id is None, defaulting to Voicevox ID 3.")
             # self.voicevox_instance.hogehoge(self.content, 3)
-            self.cevio.make_sound_CeVIO(self.content, "IA")
+            self.cevio.make_sound_CeVIO(self.content, "IA", f"{self.message_hash}.wav")
         elif voice_id == "IA":
             print("voice_id is IA")
-            self.cevio.make_sound_CeVIO(self.content, voice_id)
+            self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
         else:
             print(f"voice_id is {voice_id}")
-            self.voicevox_instance.hogehoge(self.content, voice_id)
+            self.voicevox_instance.hogehoge(self.content, voice_id, self.message_hash)
             # self.cevio.make_sound_CeVIO(self.content, "IA")
-
-        print(f"Message from target channel: {message.content}")
-        print("start")
-        source = discord.FFmpegPCMAudio('voice/sample.wav')
-        print("set path")
-        message.guild.voice_client.play(source)
-        print("play")
-        print("remove and end")
+        try:
+            print(f"Message from target channel: {message.content}")
+            print("start")
+            source = discord.FFmpegPCMAudio(f'voice/{self.message_hash}.wav')
+            print("set path")
+            message.guild.voice_client.play(source)
+            print("play")
+            print("remove and end")
+        except Exception as e:
+            print(e)
 
     @app_commands.command(name='join', description='Say hello to the world!')
     async def join(self, interaction: discord.Interaction):

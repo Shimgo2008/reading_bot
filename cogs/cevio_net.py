@@ -14,8 +14,8 @@ class CeVIO:
         self.ServiceControl2 = ServiceControl2
         self.Talker2 = Talker2 
 
-    def make_sound_CeVIO(self, text: str, cast: str):
-        print("関数が呼ばれました")
+    def make_sound_CeVIO(self, text: str, cast: str, filename:str = None):
+
         try:
             # テキストのクリーニング
             def clean_text(text):
@@ -27,6 +27,9 @@ class CeVIO:
                 text = text.replace("IA", "いあ")
                 text = text.replace('`ia', 'いあ')
                 return text
+
+            if filename == None:
+                filename = "sword_world_2.wav"
 
             text = clean_text(text)
             text = text[:150]
@@ -44,7 +47,7 @@ class CeVIO:
             # 出力ディレクトリの確認
             output_dir = ".\\voice"
             os.makedirs(output_dir, exist_ok=True)
-            output_path = os.path.join(output_dir, "sample.wav")
+            output_path = os.path.join(output_dir, filename)
 
             # 音声を出力
             state = talker.OutputWaveToFile(text, output_path)

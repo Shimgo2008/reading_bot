@@ -6,7 +6,7 @@ import re
 
 class voicevox:
 
-    def hogehoge(self, text, speaker, path=None):
+    def hogehoge(self, text, speaker, filename=None):
         
         def clean_text(text):
             text = re.sub(r'\|\|.+?\|\|', 'ネタバレ', text)
@@ -37,9 +37,11 @@ class voicevox:
                 )
         wav = response.content
 
-        if path == None:
-            path = 'voice/sample.wav'
+        if filename == None:
+            filename = "sword_world_2"
 
-        out = Path(path)
+        filename = f'voice/{filename}.wav'
+
+        out = Path(filename)
         out.write_bytes(wav)
         print('create file')

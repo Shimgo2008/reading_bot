@@ -3,6 +3,7 @@ cogs/example.py
 cogs/__pycache__
 __pycache__
 voice/*
+read_bot
 server/*
 hoge.py
 .venv

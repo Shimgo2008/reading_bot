@@ -1,13 +1,17 @@
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
+
 import asyncio
-import time
-from pathlib import Path
+import datetime
 import logging
+
+from pathlib import Path
+
 from .voicevoxapi import voicevox
 from .lib import mng_speaker_id
 from .cevio_net import CeVIO
+from .jiho import jiho  # Jihoクラスをインポート
 
 # ログの設定
 logging.basicConfig(
@@ -47,16 +51,26 @@ class MyCog(commands.Cog):
         self.voicevox_instance = voicevox()
         self.mng_speaker_id = mng_speaker_id()
         self.cevio = CeVIO()
+        self.jiho = jiho(self.voice_connections)  # Jihoインスタンスを作成
         self.cleanup_voice_files.start()
+        self.jiho_task.start()  # Jihoのタスクを開始
         logger.info("MyCog initialized.")
 
     @tasks.loop(minutes=10)
     async def cleanup_voice_files(self):
         logger.info("Running cleanup_voice_files task.")
         for file in Path('./voice').glob('*.wav'):
-            if file.stat().st_mtime < time.time() - 3600:
-                file.unlink()
-                logger.info(f"Deleted old file: {file}")
+            file.unlink()
+            logger.info(f"Deleted old file: {file}")
+
+    @tasks.loop(seconds=1)
+    async def jiho_task(self):
+        await self.jiho.jiho_task()  # Jihoクラスのjiho_taskメソッドを呼び出し
+
+    @jiho_task.before_loop
+    async def before_jiho_task(self):
+        logger.info("Waiting for bot to be ready before jiho task.")
+        await self.bot.wait_until_ready()
 
     @cleanup_voice_files.before_loop
     async def before_cleanup_voice_files(self):
@@ -66,7 +80,7 @@ class MyCog(commands.Cog):
     async def process_message(self, message):
         logger.debug(f"Processing message: {message.content} from {message.author}")
 
-        if message.author == self.bot.user:
+        if message.author.bot:
             logger.debug("Message is from bot itself. Ignoring.")
             return
         if message.content.startswith((";", "；", "//")):
@@ -75,7 +89,10 @@ class MyCog(commands.Cog):
         if self.channel_id is None or message.channel.id != self.channel_id:
             logger.info(f"Message channel ({message.channel.id}) is not the configured channel ({self.channel_id}). Ignoring.")
             return
-
+        if message.content == '@ピザ':
+            await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
+            return
+        
         self.content = message.content
         self.user_id = message.author.id
         self.server_id = message.guild.id
@@ -85,15 +102,20 @@ class MyCog(commands.Cog):
         logger.debug(f"Voice ID for user {self.user_id}: {voice_id}")
 
         try:
-            if voice_id is None:
-                logger.info("No voice ID found. Using CeVIO with default voice.")
-                self.cevio.make_sound_CeVIO(self.content, "IA", f"{self.message_hash}.wav")
-            elif voice_id == "IA":
-                logger.info("Using CeVIO with IA voice.")
-                self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
-            else:
-                logger.info("Using Voicevox for synthesis.")
-                self.voicevox_instance.hogehoge(self.content, voice_id, self.message_hash)
+            match voice_id:
+                case "No":
+                    return
+                case None:
+                    # logger.info("No voice ID found. Using CeVIO with default voice.")
+                    self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
+                    # self.cevio.make_sound_CeVIO(self.content, "IA", f"{self.message_hash}.wav")
+                    # return
+                case "IA":
+                    logger.info("Using CeVIO with IA voice.")
+                    self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
+                case _:
+                    logger.info("Using Voicevox for synthesis.")
+                    self.voicevox_instance.hogehoge(self.content, voice_id, self.message_hash)
 
             source = discord.FFmpegPCMAudio(f'voice/{self.message_hash}.wav')
             if message.guild.voice_client:
@@ -111,13 +133,12 @@ class MyCog(commands.Cog):
         except Exception as e:
             logger.error(f"Error in process_message: {e}")
 
-
     @commands.Cog.listener()
     async def on_message(self, message):
         logger.debug(f"Received message: {message.content}")
         asyncio.create_task(self.process_message(message))
 
-    @app_commands.command(name='join', description='Say hello to the world!')
+    @app_commands.command(name='join', description='ボイスチャンネルに参加')
     async def join(self, interaction: discord.Interaction):
         logger.info(f"Received join command from {interaction.user}.")
         self.channel_id = interaction.channel.id

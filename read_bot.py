@@ -10,8 +10,8 @@ intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
 client = commands.Bot(command_prefix="!", intents=intents)
-
 TOKEN = settings.BOT_TOKEN
+
 
 @client.event
 async def on_ready():
@@ -28,7 +28,7 @@ async def setup():
 @client.tree.command(name="set_speaker")
 @app_commands.describe(commands="helloworld")
 @app_commands.choices(commands=[
-    discord.app_commands.Choice(name="デフォルト", value="3"),
+    discord.app_commands.Choice(name="無し", value="No"),
 
     discord.app_commands.Choice(name="IA姉", value="IA"),
 

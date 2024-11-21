@@ -1,4 +1,5 @@
 import pickle
+import json
 import os
 
 class mng_speaker_id:
@@ -45,3 +46,12 @@ class mng_speaker_id:
             return data.get(now_user_id, None)
         else:
             return None
+
+    def save_dic(guild_id:str, original_word:str, word_phonetic:str):
+        print(f"guild_id is {guild_id}\noriginal_word is {original_word}\nword_phonetic is {word_phonetic}")
+        d_new = {original_word:word_phonetic}
+        with open(f'server/{guild_id}/phonetic_dict.j1son', 'w')as f:
+            json.dump(d_new, f, indent=0)
+
+    def get_dic(guild_id:str):
+        print(guild_id)

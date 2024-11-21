@@ -9,3 +9,5 @@ hoge.py
 .venv
 macos-arm64
 bot.log
+.gitignore
+protect_voice_data/*

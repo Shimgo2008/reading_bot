@@ -10,9 +10,12 @@ class CeVIO:
         if not os.path.exists(dll_path):
             raise FileNotFoundError(f"DLL ファイルが見つかりません: {dll_path}")
         clr.AddReference(dll_path)
-        from CeVIO.Talk.RemoteService2 import ServiceControl2, Talker2
+        from CeVIO.Talk.RemoteService2 import ServiceControl2, Talker2 # type: ignore
         self.ServiceControl2 = ServiceControl2
-        self.Talker2 = Talker2 
+        self.Talker2 = Talker2        
+        # CeVIO AIを起動
+        if not self.ServiceControl2.IsHostStarted:
+            self.ServiceControl2.StartHost(False)
 
     def make_sound_CeVIO(self, text: str, cast: str, filename:str = None):
 
@@ -33,10 +36,6 @@ class CeVIO:
 
             text = clean_text(text)
             text = text[:150]
-
-            # CeVIO AIを起動
-            if not self.ServiceControl2.IsHostStarted:
-                self.ServiceControl2.StartHost(False)
 
             # Talker インスタンスを作成
             talker = self.Talker2()

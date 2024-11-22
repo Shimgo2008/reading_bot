@@ -25,9 +25,9 @@ async def setup():
     await client.start(TOKEN)
 
 
-@client.tree.command(name="set_speaker")
-@app_commands.describe(commands="helloworld")
-@app_commands.choices(commands=[
+@client.tree.command(name="set_speaker", description="喋る声を変えます")
+@app_commands.describe(声="helloworld")
+@app_commands.choices(声=[
     discord.app_commands.Choice(name="無し", value="No"),
 
     discord.app_commands.Choice(name="IA姉", value="IA"),
@@ -58,9 +58,9 @@ async def setup():
     discord.app_commands.Choice(name="怖がりタイプT", value="51"),
     discord.app_commands.Choice(name="ささやきタイプT", value="52"),
 ])
-async def set_speaker(interaction: discord.Interaction, commands: discord.app_commands.Choice[str] = None):
-    name = commands.name
-    value = commands.value
+async def set_speaker(interaction: discord.Interaction, 声: discord.app_commands.Choice[str] = "IA姉"):
+    name = 声.name
+    value = 声.value
     server_id = interaction.guild.id
     user_id = interaction.user.id
     print(f"server id is {server_id}")

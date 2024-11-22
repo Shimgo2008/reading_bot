@@ -51,10 +51,11 @@ class jiho:
                 logger.info("00:00:00 detected. Playing audio.")
                 await self.play_voice("all", "protect_voice_data/niconico douga onsei.wav")
                 await asyncio.sleep(90)  # 90秒待機後フラグリセット
-            
+
             if hour != 23:
                 await asyncio.sleep(1200)
-            if minute < 30:
-                await asyncio.sleep(300)
-            elif minute < 55:
+            elif minute > 55:
                 await asyncio.sleep(30)
+            elif minute > 30:
+                await asyncio.sleep(300)
+

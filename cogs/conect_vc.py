@@ -3,13 +3,12 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import asyncio
-import datetime
 import logging
-
+import json
 from pathlib import Path
 
 from .voicevoxapi import voicevox
-from .lib import mng_speaker_id
+from .lib import mng_speaker_id, mng_dict
 from .cevio_net import CeVIO
 from .jiho import jiho  # Jihoクラスをインポート
 
@@ -23,37 +22,25 @@ logging.basicConfig(
     ]
 )
 
-# conect_vc専用ロガーを作成
-specific_logger = logging.getLogger("conect_vc")
-specific_logger.setLevel(logging.DEBUG)  # DEBUGレベルに設定
-
-# 既存パッケージのログを抑制（例：discordのログ）
-logging.getLogger("discord").setLevel(logging.WARNING)
-logging.getLogger("discord.ext").setLevel(logging.WARNING)
-
-# conect_vc専用のハンドラー（ストリーム）を追加
-handler = logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s [%(name)s] [%(levelname)s] %(message)s")
-handler.setFormatter(formatter)
-specific_logger.addHandler(handler)
-
-# モジュールごとのロガーを作成
-logger = logging.getLogger(__name__)  # モジュール名を使うことで識別可能なロガーを作成
-
+# モジュール専用ロガー
+logger = logging.getLogger(__name__)  # モジュール名をロガー名として使用
 
 class MyCog(commands.Cog):
-
     def __init__(self, bot):
         self.bot = bot
-        self.channel_id = None
-        self.voice_connections = {}
+        self.channel_ids = {}  # ギルド（サーバー）ごとのチャンネルIDを記録
+        self.voice_connections = {}  # ギルドごとのVoiceClientを記録
         self.voicevox_instance = voicevox()
         self.mng_speaker_id = mng_speaker_id()
         self.cevio = CeVIO()
-        self.jiho = jiho(self.voice_connections)  # Jihoインスタンスを作成
+        self.jiho = jiho(self.voice_connections)
+        self.dict = mng_dict()
+        
+
+        # タスクの初期化
         self.cleanup_voice_files.start()
-        self.jiho_task.start()  # Jihoのタスクを開始
+        self.jiho_task.start()
+        self.auto_disconnect.start()
         logger.info("MyCog initialized.")
 
     @tasks.loop(minutes=10)
@@ -65,11 +52,25 @@ class MyCog(commands.Cog):
 
     @tasks.loop(seconds=1)
     async def jiho_task(self):
-        await self.jiho.jiho_task()  # Jihoクラスのjiho_taskメソッドを呼び出し
+        await self.jiho.jiho_task()
 
     @jiho_task.before_loop
     async def before_jiho_task(self):
         logger.info("Waiting for bot to be ready before jiho task.")
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(seconds=30)
+    async def auto_disconnect(self):
+        logger.info("Running auto_disconnect task.")
+        for guild_id, vc in list(self.voice_connections.items()):
+            if len(vc.channel.members) == 1:  # ボットのみの場合
+                logger.info(f"Voice channel in guild {guild_id} is empty. Disconnecting.")
+                await vc.disconnect()
+                del self.voice_connections[guild_id]
+
+    @auto_disconnect.before_loop
+    async def before_auto_disconnect(self):
+        logger.info("Waiting for bot to be ready before auto_disconnect task.")
         await self.bot.wait_until_ready()
 
     @cleanup_voice_files.before_loop
@@ -80,19 +81,23 @@ class MyCog(commands.Cog):
     async def process_message(self, message):
         logger.debug(f"Processing message: {message.content} from {message.author}")
 
+        # メッセージがDMまたは無関係なチャンネルの場合は無視
+        if message.guild is None:
+            logger.warning("Message does not belong to a guild. Ignoring.")
+            return
+
+        guild_id = message.guild.id
+        if guild_id not in self.channel_ids or message.channel.id != self.channel_ids[guild_id]:
+            logger.info(f"Message channel ({message.channel.id}) is not the configured channel for guild {guild_id}. Ignoring.")
+            return
+
         if message.author.bot:
             logger.debug("Message is from bot itself. Ignoring.")
             return
         if message.content.startswith((";", "；", "//")):
             logger.debug("Message starts with ignored prefix. Skipping.")
             return
-        if self.channel_id is None or message.channel.id != self.channel_id:
-            logger.info(f"Message channel ({message.channel.id}) is not the configured channel ({self.channel_id}). Ignoring.")
-            return
-        if message.content == '@ピザ':
-            await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
-            return
-        
+
         self.content = message.content
         self.user_id = message.author.id
         self.server_id = message.guild.id
@@ -101,15 +106,22 @@ class MyCog(commands.Cog):
         voice_id = self.mng_speaker_id.get_voice_id(self.user_id, self.server_id)
         logger.debug(f"Voice ID for user {self.user_id}: {voice_id}")
 
+        with open(f'server/{self.server_id}/phonetic_dict.json', 'r', encoding='utf-8') as f:
+            dict_json = json.load(f)
+        
+        dict_json = dict(dict_json)
+
+        logger.info(f"current dict is {dict_json}")
+
+        for key, value in dict_json.items():
+            self.content = self.content.replace(key, value)
+
         try:
             match voice_id:
                 case "No":
                     return
                 case None:
-                    # logger.info("No voice ID found. Using CeVIO with default voice.")
                     self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
-                    # self.cevio.make_sound_CeVIO(self.content, "IA", f"{self.message_hash}.wav")
-                    # return
                 case "IA":
                     logger.info("Using CeVIO with IA voice.")
                     self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
@@ -140,49 +152,67 @@ class MyCog(commands.Cog):
 
     @app_commands.command(name='join', description='ボイスチャンネルに参加')
     async def join(self, interaction: discord.Interaction):
-        logger.info(f"Received join command from {interaction.user}.")
-        self.channel_id = interaction.channel.id
-        if interaction.guild.id in self.voice_connections:
-            logger.warning("Already connected to a voice channel in this guild.")
+        logger.info("join command received.")
+        guild_id = interaction.guild.id
+        self.channel_ids[guild_id] = interaction.channel.id  # サーバーごとのチャンネルIDを記録
+
+        if guild_id in self.voice_connections:
+            logger.warning(f"Already connected to a voice channel in guild {guild_id}.")
             await interaction.response.send_message("既に接続しています。", ephemeral=True)
             return
 
         if interaction.user.voice and interaction.user.voice.channel:
             voice_channel = interaction.user.voice.channel
+            logger.info(f"User {interaction.user} is in voice channel {voice_channel}. Attempting to connect.")
             try:
                 vc = await voice_channel.connect()
-                self.voice_connections[interaction.guild.id] = vc
-                logger.info(f"Connected to voice channel: {voice_channel}.")
+                self.voice_connections[guild_id] = vc
+                logger.info(f"Successfully connected to voice channel {voice_channel}.")
                 await interaction.response.send_message("接続しました。", ephemeral=True)
             except Exception as e:
-                logger.error(f"Error connecting to voice channel: {e}")
+                logger.error(f"Error connecting to voice channel in guild {guild_id}: {e}")
                 await interaction.response.send_message("接続できませんでした。", ephemeral=True)
         else:
-            logger.warning("User is not in a voice channel.")
+            logger.warning(f"User {interaction.user} is not in a voice channel.")
             await interaction.response.send_message("ボイスチャンネルに接続できませんでした。", ephemeral=True)
 
     @app_commands.command(name='leave', description='ボイスチャンネルから離れる')
     async def leave(self, interaction: discord.Interaction):
-        logger.info(f"Received leave command from {interaction.user}.")
-        if interaction.guild.id in self.voice_connections:
-            vc = self.voice_connections.pop(interaction.guild.id)
+        guild_id = interaction.guild.id
+        if guild_id in self.voice_connections:
+            vc = self.voice_connections.pop(guild_id)
             await vc.disconnect()
-            logger.info(f"Disconnected from voice channel in guild {interaction.guild.id}.")
+            logger.info(f"Disconnected from voice channel in guild {guild_id}.")
             await interaction.response.send_message("切断しました。", ephemeral=True)
         else:
-            logger.warning("No active voice connection in this guild.")
+            logger.warning(f"No active voice connection in guild {guild_id}.")
             await interaction.response.send_message("ボイスチャンネルに接続していません。", ephemeral=True)
 
-    @tasks.loop(seconds=30)
-    async def auto_disconnect(self):
-        logger.info("Running auto_disconnect task.")
-        for guild_id, vc in list(self.voice_connections.items()):
-            if len(vc.channel.members) == 1:  # ボットのみの場合
-                logger.info(f"Voice channel in guild {guild_id} is empty. Disconnecting.")
-                await vc.disconnect()
-                del self.voice_connections[guild_id]
+    @app_commands.command(name="じほー", description="じほー")
+    async def jiho(self, interaction: discord.Interaction):
+        print("start")
+        source = discord.FFmpegPCMAudio(f"protect_voice_data/niconico douga onsei.wav")
+        print("set path")
+        await interaction.guild.voice_client.play(source)
+        await interaction.response.send_message("じほー")
+        print("end")
 
-    @auto_disconnect.before_loop
-    async def before_auto_disconnect(self):
-        logger.info("Waiting for bot to be ready before auto_disconnect task.")
-        await self.bot.wait_until_ready()
+    @app_commands.command(name="dictionary_add", description="サーバー辞書に追加")
+    async def dictionary_add(self, interaction: discord.Interaction, 単語: str, 読み:str):
+        logger.info("run disctionary add")
+        add_log = self.dict.save_dic(interaction.guild_id, 単語, 読み)
+        logger.info(add_log)
+        await interaction.response.send_message(str(add_log))
+
+    @app_commands.command(name="dictionary_remove", description="サーバー辞書から削除")
+    async def dictionary_remove(self, interaction: discord.Interaction, 単語: str):
+        logger.info("run disctionary remove")
+        remove_log = self.dict.remove_dict(interaction.guild_id, 単語)
+        logger.info(remove_log)
+        await interaction.response.send_message(remove_log)
+
+    @app_commands.command(name="dictionary_list", description="サーバー辞書を参照")
+    async def dictionary_list(self, interaction: discord.Interaction, ):
+        logger.info("run disctionary list")
+        list_log = self.dict.list_dict(interaction.guild_id)
+        await interaction.response.send_message(list_log)

@@ -25,7 +25,7 @@ class voicevox:
 
         print(text)
 
-        text = text[:240]
+        # text = text[:240]
         params = {'text': text, 'speaker': speaker}  # ずんだもん ノーマルスタイル
         timeout = 15
         query_synthesis = requests.post(url, params=params, timeout=timeout)

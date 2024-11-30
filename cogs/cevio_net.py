@@ -20,7 +20,6 @@ class CeVIO:
     def make_sound_CeVIO(self, text: str, cast: str, filename:str = None):
 
         try:
-            # テキストのクリーニング
             def clean_text(text):
                 text = re.sub(r'\|\|.+?\|\|', 'ネタバレ', text)
                 text = re.sub(r'`[^\n\r\f\v`]+?`|```[\s\S]+?```', 'コード省略', text)
@@ -37,18 +36,15 @@ class CeVIO:
             text = clean_text(text)
             text = text[:150]
 
-            # Talker インスタンスを作成
             talker = self.Talker2()
             talker.Cast = cast
             talker.Volume = 100
             talker.ToneScale = 100
 
-            # 出力ディレクトリの確認
             output_dir = ".\\voice"
             os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, filename)
 
-            # 音声を出力
             state = talker.OutputWaveToFile(text, output_path)
             print(f"音声が保存されました: {output_path}")
             

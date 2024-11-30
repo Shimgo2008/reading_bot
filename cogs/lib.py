@@ -68,7 +68,7 @@ class mng_dict:
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         
-        return f"{original_word}の読みを{word_phonetic}として登録しました"
+        return f"「{original_word}」の読みを「{word_phonetic}」として登録しました"
 
     def remove_dict(self, guild_id: str, original_word: str):
         print(f"guild_id is {guild_id}\noriginal_word to remove is {original_word}")
@@ -113,6 +113,6 @@ class mng_dict:
         with open(f"server/{guild_id}/phonetic_dict.json", "r", encoding='utf-8') as f:
             data = json.load(f)
 
-        data = str(data).replace(',', '\n').replace('{', '').replace('}','')
+        data = str(data).replace(',', '\n').replace('{', '').replace('}','').replace('\'', '')
         
         return data

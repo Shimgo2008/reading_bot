@@ -58,4 +58,5 @@ class jiho:
                 await asyncio.sleep(30)
             elif minute > 30:
                 await asyncio.sleep(300)
-
+            else:
+                await asyncio.sleep(600)

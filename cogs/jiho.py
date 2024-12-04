@@ -38,7 +38,7 @@ class jiho:
         """
         時報タスク
         """
-        self.jiho = False  # jiho フラグを初期化
+        self.jiho = False
 
         while True:
             now = datetime.datetime.now()
@@ -47,12 +47,35 @@ class jiho:
             hour = now.hour
             minute = now.minute
 
-            if hour == 0 and minute == 0 and not self.jiho:  # 00:00:00 とフラグが False の時
-                logger.info("00:00:00 detected. Playing audio.")
-                await self.play_voice("all", "protect_voice_data/niconico douga onsei.wav")
-                await asyncio.sleep(90)  # 90秒待機後フラグリセット
+            match (hour, minute):
+                case (0, 0):
+                    if not self.jiho:
+                        logger.info("00:00:00 detected. Playing audio.")
+                        await self.play_voice("all", "protect_voice_data/niconico_ziho_0h.wav")
+                        self.jiho = True
+                        await asyncio.sleep(90)  # 90秒待機後フラグリセット
 
-            if hour != 23:
+                case (1, 0):
+                    if not self.jiho:
+                        
+                        logger.info("01:00:00 detected. Playing audio.")
+                        await self.play_voice("all", "protect_voice_data/niconico_ziho_1h.wav")
+                        self.jiho = True
+                        await asyncio.sleep(90)
+
+                case (2, 0):
+                    if not self.jiho:
+                        logger.info("02:00:00 detected. Playing audio.")
+                        await self.play_voice("all", "protect_voice_data/niconico_ziho_2h.wav")
+                        self.jiho = True
+                        await asyncio.sleep(90)
+
+            # フラグをリセット
+            if minute != 0:
+                self.jiho = False
+
+            # 待機時間の調整
+            if hour != 1:
                 await asyncio.sleep(1200)
             elif minute > 55:
                 await asyncio.sleep(30)

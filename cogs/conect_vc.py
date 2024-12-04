@@ -135,7 +135,7 @@ class MyCog(commands.Cog):
                 self.content = self.content.replace(key, value)
 
         except Exception:
-            print("辞書がないお")
+            logger.error("辞書がないお")
 
 
 
@@ -148,7 +148,6 @@ class MyCog(commands.Cog):
                 case "IA":
                     logger.info("Using CeVIO with IA voice.")
                     self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
-                    # self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
                 case _:
                     logger.info("Using Voicevox for synthesis.")
                     self.voicevox_instance.hogehoge(self.content, voice_id, self.message_hash)
@@ -278,14 +277,18 @@ class MyCog(commands.Cog):
         else:
             logger.warning(f"No active voice connection in guild {guild_id}.")
             await interaction.response.send_message("ボイスチャンネルに接続していません。", ephemeral=True)
-
+    @app_commands.choices(何時=[
+        discord.app_commands.Choice(name="0時", value="0"),
+        discord.app_commands.Choice(name="1時", value="1"),
+        discord.app_commands.Choice(name="2時", value="2"),
+    ])
     @app_commands.command(name="じほー", description="じほー")
-    async def jiho(self, interaction: discord.Interaction):
+    async def jiho(self, interaction: discord.Interaction, 何時:str):
         print("start")
-        source = discord.FFmpegPCMAudio(f"protect_voice_data/niconico douga onsei.wav")
+        source = discord.FFmpegPCMAudio(f"protect_voice_data/niconico_ziho_{何時}h.wav")
         print("set path")
+        await interaction.response.send_message(f"{何時}時のじほー", ephemeral=True)
         await interaction.guild.voice_client.play(source)
-        await interaction.response.send_message("じほー")
         print("end")
 
     @app_commands.command(name="dictionary_add", description="サーバー辞書に追加")

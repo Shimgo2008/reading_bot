@@ -7,7 +7,6 @@ import re
 class voicevox:
 
     def hogehoge(self, text, speaker, filename=None):
-        
         def clean_text(text):
             text = re.sub(r'\|\|.+?\|\|', 'ネタバレ', text)
             text = re.sub(r'`[^\n\r\f\v`]+?`|```[\s\S]+?```', 'コード省略', text)
@@ -31,13 +30,13 @@ class voicevox:
         query_synthesis = requests.post(url, params=params, timeout=timeout)
         print(query_synthesis.json())
         response = requests.post(
-                    f'{settings.VOICEVOX_PORT}/synthesis',
-                    params=params,
-                    json=query_synthesis.json(),
-                )
+            f'{settings.VOICEVOX_PORT}/synthesis',
+            params=params,
+            json=query_synthesis.json(),
+        )
         wav = response.content
 
-        if filename == None:
+        if not filename:
             filename = "sword_world_2"
 
         filename = f'voice/{filename}.wav'

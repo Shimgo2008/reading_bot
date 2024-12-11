@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)  # ファイル名をロガー名として使用
 
+
 class jiho:
     def __init__(self, voice_connections):
         """
@@ -57,7 +58,6 @@ class jiho:
 
                 case (1, 0):
                     if not self.jiho:
-                        
                         logger.info("01:00:00 detected. Playing audio.")
                         await self.play_voice("all", "protect_voice_data/niconico_ziho_1h.wav")
                         self.jiho = True
@@ -74,7 +74,7 @@ class jiho:
             if minute != 0:
                 self.jiho = False
 
-            if hour not in [0,1,23] :
+            if hour not in [0, 1, 23]:
                 await asyncio.sleep(1200)
             elif minute > 54:
                 print("30秒待機します")

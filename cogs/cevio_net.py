@@ -37,7 +37,7 @@ class CeVIO:
                 text = text.replace("`ia", "いあ")
                 return text
 
-            if filename == None:
+            if not filename:
                 filename = "sword_world_2.wav"
 
             text = clean_text(text)
@@ -52,7 +52,7 @@ class CeVIO:
             os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, filename)
 
-            state = talker.OutputWaveToFile(text, output_path)
+            talker.OutputWaveToFile(text, output_path)
             print(f"音声が保存されました: {output_path}")
 
         except Exception as e:

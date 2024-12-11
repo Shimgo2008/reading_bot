@@ -2,8 +2,8 @@ import pickle
 import json
 import os
 
-class mng_speaker_id:
 
+class mng_speaker_id:
     @staticmethod
     def save_data(user_id, voice_id, server_id, filename=None):
         if filename is None:
@@ -47,12 +47,12 @@ class mng_speaker_id:
         else:
             return None
 
+
 class mng_dict:
     def save_dic(self, guild_id: str, original_word: str, word_phonetic: str):
         print(f"guild_id is {guild_id}\noriginal_word is {original_word}\nword_phonetic is {word_phonetic}")
-        
         file_path = f'server/{guild_id}/phonetic_dict.json'
-        
+
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as f:
                 try:
@@ -60,22 +60,17 @@ class mng_dict:
                 except json.JSONDecodeError:
                     data = {}
         else:
-            data = {}  
-        
+            data = {}
         data[original_word] = word_phonetic
-        
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-        
         return f"「{original_word}」の読みを「{word_phonetic}」として登録しました"
 
     def remove_dict(self, guild_id: str, original_word: str):
         print(f"guild_id is {guild_id}\noriginal_word to remove is {original_word}")
-        
         # 保存先ファイルパス
         file_path = f'server/{guild_id}/phonetic_dict.json'
-        
         # 既存のデータを読み込む
         if os.path.exists(file_path):
             try:
@@ -89,12 +84,10 @@ class mng_dict:
             error_msg = "エラー: 辞書ファイルが存在しません。"
             print(error_msg)
             return error_msg
-        
         # 指定したキーを削除
         if original_word in data:
             del data[original_word]
             print(f"キー `{original_word}` を辞書から削除しました。")
-            
             # 更新後のデータを保存
             try:
                 with open(file_path, 'w', encoding='utf-8') as f:
@@ -109,10 +102,9 @@ class mng_dict:
             print(error_msg)
             return error_msg
 
-    def list_dict(self, guild_id:str):
+    def list_dict(self, guild_id: str):
         with open(f"server/{guild_id}/phonetic_dict.json", "r", encoding='utf-8') as f:
             data = json.load(f)
 
-        data = str(data).replace(',', '\n').replace('{', '').replace('}','').replace('\'', '')
-        
+        data = str(data).replace(',', '\n').replace('{', '').replace('}', '').replace('\'', '')
         return data

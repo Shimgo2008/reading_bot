@@ -18,12 +18,13 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler("bot.log", encoding="utf-8"),
-        logging.StreamHandler()
-    ]
+        logging.StreamHandler(),
+    ],
 )
 
 # モジュール専用ロガー
 logger = logging.getLogger(__name__)  # モジュール名をロガー名として使用
+
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
@@ -35,7 +36,6 @@ class MyCog(commands.Cog):
         self.cevio = CeVIO()
         self.jiho = jiho(self.voice_connections)
         self.dict = mng_dict()
-        
 
         # タスクの初期化
         self.cleanup_voice_files.start()
@@ -46,7 +46,7 @@ class MyCog(commands.Cog):
     @tasks.loop(minutes=10)
     async def cleanup_voice_files(self):
         logger.info("Running cleanup_voice_files task.")
-        for file in Path('./voice').glob('*.wav'):
+        for file in Path("./voice").glob("*.wav"):
             file.unlink()
             logger.info(f"Deleted old file: {file}")
 
@@ -64,7 +64,9 @@ class MyCog(commands.Cog):
         logger.info("Running auto_disconnect task.")
         for guild_id, vc in list(self.voice_connections.items()):
             if len(vc.channel.members) == 1:  # ボットのみの場合
-                logger.info(f"Voice channel in guild {guild_id} is empty. Disconnecting.")
+                logger.info(
+                    f"Voice channel in guild {guild_id} is empty. Disconnecting."
+                )
                 await vc.disconnect()
                 del self.voice_connections[guild_id]
 
@@ -90,16 +92,20 @@ class MyCog(commands.Cog):
             logger.debug("Message is from bot itself. Ignoring.")
             return
 
-        if message.content == '@ピザ':
-            await message.channel.send('https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza',)
-            if message.author.voice.channel != None:
-                source = discord.FFmpegPCMAudio('protect_voice_data/piza.wav')
+        if message.content == "@ピザ":
+            await message.channel.send(
+                "https://www.pizza-la.co.jp/MenuList.aspx?ListId=Pizza",
+            )
+            if message.author.voice.channel:
+                source = discord.FFmpegPCMAudio("protect_voice_data/piza.wav")
             if message.guild.voice_client:
                 if not message.guild.voice_client.is_playing():
                     logger.debug("Playing audio file.")
                     message.guild.voice_client.play(source)
                 else:
-                    logger.warning("Client is already playing, waiting for it to finish.")
+                    logger.warning(
+                        "Client is already playing, waiting for it to finish."
+                    )
                     while message.guild.voice_client.is_playing():
                         await asyncio.sleep(0.5)
                     logger.debug("Replaying audio after waiting.")
@@ -109,8 +115,13 @@ class MyCog(commands.Cog):
             return
 
         guild_id = message.guild.id
-        if guild_id not in self.channel_ids or message.channel.id != self.channel_ids[guild_id]:
-            logger.info(f"Message channel ({message.channel.id}) is not the configured channel for guild {guild_id}. Ignoring.")
+        if (
+            guild_id not in self.channel_ids
+            or message.channel.id != self.channel_ids[guild_id] # noqa
+        ):
+            logger.info(
+                f"Message channel ({message.channel.id}) is not the configured channel for guild {guild_id}. Ignoring."
+            )
             return
 
         if message.content.startswith((";", "；", "//")):
@@ -126,7 +137,9 @@ class MyCog(commands.Cog):
         logger.debug(f"Voice ID for user {self.user_id}: {voice_id}")
 
         try:
-            with open(f'server/{self.server_id}/phonetic_dict.json', 'r', encoding='utf-8') as f:
+            with open(
+                f"server/{self.server_id}/phonetic_dict.json", "r", encoding="utf-8"
+            ) as f:
                 dict_json = json.load(f)
             dict_json = dict(dict_json)
             logger.info(f"current dict is {dict_json}")
@@ -137,29 +150,35 @@ class MyCog(commands.Cog):
         except Exception:
             logger.error("辞書がないお")
 
-
-
         try:
             match voice_id:
                 case "No":
                     return
                 case None:
                     # self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
-                    self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
+                    self.cevio.make_sound_CeVIO(
+                        self.content, voice_id, f"{self.message_hash}.wav"
+                    )
                 case "IA":
                     logger.info("Using CeVIO with IA voice.")
-                    self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
+                    self.cevio.make_sound_CeVIO(
+                        self.content, voice_id, f"{self.message_hash}.wav"
+                    )
                 case _:
                     logger.info("Using Voicevox for synthesis.")
-                    self.voicevox_instance.hogehoge(self.content, voice_id, self.message_hash)
+                    self.voicevox_instance.hogehoge(
+                        self.content, voice_id, self.message_hash
+                    )
 
-            source = discord.FFmpegPCMAudio(f'voice/{self.message_hash}.wav')
+            source = discord.FFmpegPCMAudio(f"voice/{self.message_hash}.wav")
             if message.guild.voice_client:
                 if not message.guild.voice_client.is_playing():
                     logger.debug("Playing audio file.")
                     message.guild.voice_client.play(source)
                 else:
-                    logger.warning("Client is already playing, waiting for it to finish.")
+                    logger.warning(
+                        "Client is already playing, waiting for it to finish."
+                    )
 
                     logger.debug("Replaying audio after waiting.")
                     message.guild.voice_client.play(source)
@@ -194,8 +213,10 @@ class MyCog(commands.Cog):
 
                 try:
                     # 音声ファイルを生成
-                    self.cevio.make_sound_CeVIO(str(message), "IA", f"{hash(message)}.wav")
-                    source = discord.FFmpegPCMAudio(f'voice/{hash(message)}.wav')
+                    self.cevio.make_sound_CeVIO(
+                        str(message), "IA", f"{hash(message)}.wav"
+                    )
+                    source = discord.FFmpegPCMAudio(f"voice/{hash(message)}.wav")
 
                     # ボイスクライアントが接続されている場合
                     if after.channel.guild.voice_client:
@@ -203,7 +224,9 @@ class MyCog(commands.Cog):
                             logger.debug("Playing audio file.")
                             after.channel.guild.voice_client.play(source)
                         else:
-                            logger.warning("Client is already playing, waiting for it to finish.")
+                            logger.warning(
+                                "Client is already playing, waiting for it to finish."
+                            )
                             while after.channel.guild.voice_client.is_playing():
                                 await asyncio.sleep(0.5)
                             logger.debug("Replaying audio after waiting.")
@@ -222,8 +245,10 @@ class MyCog(commands.Cog):
                 logger.info(message)
 
                 try:
-                    self.cevio.make_sound_CeVIO(str(message), "IA", f"{hash(message)}.wav")
-                    source = discord.FFmpegPCMAudio(f'voice/{hash(message)}.wav')
+                    self.cevio.make_sound_CeVIO(
+                        str(message), "IA", f"{hash(message)}.wav"
+                    )
+                    source = discord.FFmpegPCMAudio(f"voice/{hash(message)}.wav")
 
                     # ボイスクライアントが接続されている場合
                     if before.channel.guild.voice_client:
@@ -231,7 +256,9 @@ class MyCog(commands.Cog):
                             logger.debug("Playing audio file.")
                             before.channel.guild.voice_client.play(source)
                         else:
-                            logger.warning("Client is already playing, waiting for it to finish.")
+                            logger.warning(
+                                "Client is already playing, waiting for it to finish."
+                            )
                             while before.channel.guild.voice_client.is_playing():
                                 await asyncio.sleep(0.5)
                             logger.debug("Replaying audio after waiting.")
@@ -241,15 +268,19 @@ class MyCog(commands.Cog):
                 except Exception as e:
                     logger.error(f"Error during leave message processing: {e}")
 
-    @app_commands.command(name='join', description='ボイスチャンネルに参加')
+    @app_commands.command(name="join", description="ボイスチャンネルに参加")
     async def join(self, interaction: discord.Interaction):
         logger.info("join command received.")
         guild_id = interaction.guild.id
-        self.channel_ids[guild_id] = interaction.channel.id  # サーバーごとのチャンネルIDを記録
+        self.channel_ids[guild_id] = (
+            interaction.channel.id
+        )  # サーバーごとのチャンネルIDを記録
 
         if guild_id in self.voice_connections:
             logger.warning(f"Already connected to a voice channel in guild {guild_id}.")
-            await interaction.response.send_message("既に接続しています。", ephemeral=True)
+            await interaction.response.send_message(
+                "既に接続しています。", ephemeral=True
+            )
             return
 
         if interaction.user.voice and interaction.user.voice.channel:
@@ -259,15 +290,21 @@ class MyCog(commands.Cog):
                 vc = await voice_channel.connect()
                 self.voice_connections[guild_id] = vc
                 logger.info(f"Successfully connected to voice channel {voice_channel}.")
-                await interaction.response.send_message("接続しました。", ephemeral=True)
+                await interaction.response.send_message(
+                    "接続しました。", ephemeral=True
+                )
             except Exception as e:
                 logger.error(f"Error connecting to voice channel in guild {guild_id}: {e}")
-                await interaction.response.send_message("接続できませんでした。", ephemeral=True)
+                await interaction.response.send_message(
+                    "接続できませんでした。", ephemeral=True
+                )
         else:
             logger.warning(f"User {interaction.user} is not in a voice channel.")
-            await interaction.response.send_message("ボイスチャンネルに接続できませんでした。", ephemeral=True)
+            await interaction.response.send_message(
+                "ボイスチャンネルに接続できませんでした。", ephemeral=True
+            )
 
-    @app_commands.command(name='leave', description='ボイスチャンネルから離れる')
+    @app_commands.command(name="leave", description="ボイスチャンネルから離れる")
     async def leave(self, interaction: discord.Interaction):
         guild_id = interaction.guild.id
         if guild_id in self.voice_connections:
@@ -277,14 +314,19 @@ class MyCog(commands.Cog):
             await interaction.response.send_message("切断しました。", ephemeral=True)
         else:
             logger.warning(f"No active voice connection in guild {guild_id}.")
-            await interaction.response.send_message("ボイスチャンネルに接続していません。", ephemeral=True)
-    @app_commands.choices(何時=[
-        discord.app_commands.Choice(name="0時", value="0"),
-        discord.app_commands.Choice(name="1時", value="1"),
-        discord.app_commands.Choice(name="2時", value="2"),
-    ])
+            await interaction.response.send_message(
+                "ボイスチャンネルに接続していません。", ephemeral=True
+            )
+
+    @app_commands.choices(
+        何時=[
+            discord.app_commands.Choice(name="0時", value="0"),
+            discord.app_commands.Choice(name="1時", value="1"),
+            discord.app_commands.Choice(name="2時", value="2"),
+        ]
+    )
     @app_commands.command(name="じほー", description="じほー")
-    async def jiho(self, interaction: discord.Interaction, 何時:str):
+    async def jiho(self, interaction: discord.Interaction, 何時: str):
         print("start")
         source = discord.FFmpegPCMAudio(f"protect_voice_data/niconico_ziho_{何時}h.wav")
         print("set path")
@@ -293,7 +335,9 @@ class MyCog(commands.Cog):
         print("end")
 
     @app_commands.command(name="dictionary_add", description="サーバー辞書に追加")
-    async def dictionary_add(self, interaction: discord.Interaction, 単語: str, 読み:str):
+    async def dictionary_add(
+        self, interaction: discord.Interaction, 単語: str, 読み: str
+    ):
         logger.info("run disctionary add")
         add_log = self.dict.save_dic(interaction.guild_id, 単語, 読み)
         logger.info(add_log)
@@ -307,7 +351,10 @@ class MyCog(commands.Cog):
         await interaction.response.send_message(remove_log)
 
     @app_commands.command(name="dictionary_list", description="サーバー辞書を参照")
-    async def dictionary_list(self, interaction: discord.Interaction, ):
+    async def dictionary_list(
+        self,
+        interaction: discord.Interaction,
+    ):
         logger.info("run disctionary list")
         list_log = self.dict.list_dict(interaction.guild_id)
         await interaction.response.send_message(list_log)

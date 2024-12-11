@@ -144,7 +144,8 @@ class MyCog(commands.Cog):
                 case "No":
                     return
                 case None:
-                    self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
+                    # self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
+                    self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")
                 case "IA":
                     logger.info("Using CeVIO with IA voice.")
                     self.cevio.make_sound_CeVIO(self.content, voice_id, f"{self.message_hash}.wav")

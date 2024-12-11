@@ -3,7 +3,7 @@ import discord
 import asyncio
 import logging
 
-logger = logging.getLogger("jiho")
+logger = logging.getLogger(__name__)  # ファイル名をロガー名として使用
 
 class jiho:
     def __init__(self, voice_connections):
@@ -74,12 +74,14 @@ class jiho:
             if minute != 0:
                 self.jiho = False
 
-            # 待機時間の調整
-            if hour != 1:
+            if hour not in [0,1,23] :
                 await asyncio.sleep(1200)
-            elif minute > 55:
-                await asyncio.sleep(30)
+            elif minute > 54:
+                print("30秒待機します")
+                await asyncio.sleep(15)
             elif minute > 30:
+                print("5分待機します")
                 await asyncio.sleep(300)
             else:
+                print("10分待機します")
                 await asyncio.sleep(600)

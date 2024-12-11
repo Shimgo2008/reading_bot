@@ -6,7 +6,9 @@ import settings
 from cogs.conect_vc import MyCog
 from cogs.lib import mng_speaker_id
 
-intents = discord.Intents.all()
+intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
 client = commands.Bot(command_prefix="!", intents=intents)
 TOKEN = settings.BOT_TOKEN
 

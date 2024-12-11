@@ -37,11 +37,29 @@ class MyCog(commands.Cog):
         self.jiho = jiho(self.voice_connections)
         self.dict = mng_dict()
 
-        # タスクの初期化
         self.cleanup_voice_files.start()
         self.jiho_task.start()
         self.auto_disconnect.start()
         logger.info("MyCog initialized.")
+
+    def apply_phonetic_dict(self, message, server_id):
+        """辞書を参照してメッセージを置き換える関数"""
+        dict_path = Path(f"server/{server_id}/phonetic_dict.json")
+        if not dict_path.exists():
+            logger.error("辞書が存在しません。")
+            return message
+
+        try:
+            with dict_path.open("r", encoding="utf-8") as f:
+                dict_json = json.load(f)
+            logger.info(f"current dict is {dict_json}")
+
+            for key, value in dict_json.items():
+                message = message.replace(key, value)
+        except Exception as e:
+            logger.error(f"辞書の読み込みまたは置換処理中にエラーが発生しました: {e}")
+
+        return message
 
     @tasks.loop(minutes=10)
     async def cleanup_voice_files(self):
@@ -136,19 +154,7 @@ class MyCog(commands.Cog):
         voice_id = self.mng_speaker_id.get_voice_id(self.user_id, self.server_id)
         logger.debug(f"Voice ID for user {self.user_id}: {voice_id}")
 
-        try:
-            with open(
-                f"server/{self.server_id}/phonetic_dict.json", "r", encoding="utf-8"
-            ) as f:
-                dict_json = json.load(f)
-            dict_json = dict(dict_json)
-            logger.info(f"current dict is {dict_json}")
-
-            for key, value in dict_json.items():
-                self.content = self.content.replace(key, value)
-
-        except Exception:
-            logger.error("辞書がないお")
+        self.content = self.apply_phonetic_dict(self.content, self.server_id)
 
         try:
             match voice_id:
@@ -156,9 +162,7 @@ class MyCog(commands.Cog):
                     return
                 case None:
                     # self.voicevox_instance.hogehoge(self.content, "3", self.message_hash)
-                    self.cevio.make_sound_CeVIO(
-                        self.content, voice_id, f"{self.message_hash}.wav"
-                    )
+                    self.cevio.make_sound_CeVIO(self.content, "IA", f"{self.message_hash}.wav")
                 case "IA":
                     logger.info("Using CeVIO with IA voice.")
                     self.cevio.make_sound_CeVIO(
@@ -209,6 +213,9 @@ class MyCog(commands.Cog):
             if member != self.bot.user:  # 自分自身のイベントは無視
                 display_name = member.display_name
                 message = f"{display_name}さんが入室しました"
+
+                message = self.apply_phonetic_dict(message, guild_id)
+
                 logger.info(message)
 
                 try:
@@ -242,6 +249,7 @@ class MyCog(commands.Cog):
             if member != self.bot.user:
                 display_name = member.display_name
                 message = f"{display_name}さんが退出しました"
+                message = self.apply_phonetic_dict(message, guild_id)
                 logger.info(message)
 
                 try:
